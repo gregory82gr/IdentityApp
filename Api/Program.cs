@@ -1,5 +1,8 @@
 using Api.Data;
+using Api.Models;
+using Api.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +20,27 @@ builder.Services.AddDbContext<Context>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddScoped<JWTService>();
+
+//defining our IdentityCore Services
+builder.Services.AddIdentityCore<User>(options =>
+{
+    //password configuration
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+
+    // email unique configuration
+    options.SignIn.RequireConfirmedEmail = true;
+}).AddRoles<IdentityRole>() // enabling roles
+  .AddRoleManager<RoleManager<IdentityRole>>() // enabling role manager
+  .AddEntityFrameworkStores<Context>() // configuring our context class
+  .AddSignInManager<SignInManager<User>>() // enabling sign in manager
+  .AddUserManager<UserManager<User>>()// enabling user manager
+  .AddDefaultTokenProviders();// enabling default token providers
 
 var app = builder.Build();
 
